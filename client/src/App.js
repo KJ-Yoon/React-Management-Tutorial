@@ -18,36 +18,27 @@ const styles = theme => ({
   table: {
     minWidth: 1000
   }
-})
+});
 
-const customers = [
-  {
-    'id': 1,
-    'image': 'https://placeimg.com/64/64/1',
-    'name': '윤경재',
-    'birthday': '791221',
-    'gender': '남자',
-    'job': 'IRONMAN'
-  },
-  {
-    'id': 2,
-    'image': 'https://placeimg.com/64/64/2',
-    'name': '이순신',
-    'birthday': '961222',
-    'gender': '남자',
-    'job': '대학생'
-  },
-  {
-    'id': 3,
-    'image': 'https://placeimg.com/64/64/3',
-    'name': '고길동',
-    'birthday': '921202',
-    'gender': '남자',
-    'job': '직장인'
-  }
-]
 
 class App extends React.Component {
+  state = {
+    customers: ""
+  }
+
+  // 컴포넌트가 만들어지고 첫 렌더링을 다 마친 후 실행되는 메소드
+  componentDidMount() {
+    this.callApi()
+      .then(res => this.setState( {customers: res} ))
+      .catch(err => console.log(err));
+  }
+
+  callApi = async () => {
+    const response = await fetch('/api/customers');
+    const body = await response.json();
+    return body;
+  }
+
   render() {
     const { classes } = this.props;
     return (
@@ -63,7 +54,7 @@ class App extends React.Component {
           </TableHead>
           <TableBody>
           {
-            customers.map(c =>{
+              this.state.customers ?  this.state.customers.map(c =>{
               return (
                 <Customer
                   key={c.id}
@@ -75,7 +66,7 @@ class App extends React.Component {
                   job={c.job}
                 />
               );
-            })
+            }) : ""
           }
           </TableBody>
         </Table>
