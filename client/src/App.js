@@ -8,6 +8,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import { withStyles } from '@material-ui/core/styles';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 const styles = theme => ({
   root : {
@@ -17,17 +18,27 @@ const styles = theme => ({
   },
   table: {
     minWidth: 1000
+  },
+  progress: {
+    margin: theme.spacing.unit * 2
   }
 });
+/*
+. react 가 처음 component 를 실행 할때는 아래와 같은 순서를 따른다.
+constructor() -> componentWillMount() -> render() -> componentDidMount()
 
-
+. props or state => shouldComponentUpdate() 가 실행
+*/
 class App extends React.Component {
   state = {
-    customers: ""
+    customers: "",
+    completed: 0
   }
 
   // 컴포넌트가 만들어지고 첫 렌더링을 다 마친 후 실행되는 메소드
+  // website 화면에 특정한 view 를 출력하고자 한다면 componentDidMout() 함수에서 api를 비동기적으로 호출하면 된다.
   componentDidMount() {
+    this.timer = setInterval(this.progress, 20);
     this.callApi()
       .then(res => this.setState( {customers: res} ))
       .catch(err => console.log(err));
@@ -38,6 +49,11 @@ class App extends React.Component {
     const body = await response.json();
     return body;
   }
+
+progress = () => {
+  const { completed } = this.state;
+  this.setState({ completed: completed >= 100 ? 0 : completed +1});
+}
 
   render() {
     const { classes } = this.props;
@@ -66,7 +82,12 @@ class App extends React.Component {
                   job={c.job}
                 />
               );
-            }) : ""
+            }) :
+            <TableRow>
+              <TableCell colspan="6" align="center">
+                <CircularProgress className={classes.progress} variant="determinate" value={this.state.completed}/>
+              </TableCell>
+            </TableRow>
           }
           </TableBody>
         </Table>
