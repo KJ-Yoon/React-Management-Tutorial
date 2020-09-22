@@ -104,7 +104,8 @@ class App extends React.Component {
     super(props);
     this.state = {
       customers: '',
-      completed: 0
+      completed: 0,
+      searchKeyword: ''
     }
     this.stateRefresh = this.stateRefresh.bind(this);
   }
@@ -112,7 +113,8 @@ class App extends React.Component {
   stateRefresh = () => {
     this.setState({
       customers: '',
-      completed: 0
+      completed: 0,
+      searchKeyword: ''
     });
     this.callApi()
       .then(res => this.setState( {customers: res} ))
@@ -122,6 +124,7 @@ class App extends React.Component {
   // 컴포넌트가 만들어지고 첫 렌더링을 다 마친 후 실행되는 메소드
   // website 화면에 특정한 view 를 출력하고자 한다면 componentDidMout() 함수에서 api를 비동기적으로 호출하면 된다.
   componentDidMount() {
+    console.log('componentdidMount');
     this.timer = setInterval(this.progress, 20);
     this.callApi()
       .then(res => this.setState( {customers: res} ))
@@ -131,15 +134,33 @@ class App extends React.Component {
   callApi = async () => {
     const response = await fetch('/api/customers');
     const body = await response.json();
+    console.log('body', body);
     return body;
   }
 
   progress = () => {
     const { completed } = this.state;
-    this.setState({ completed: completed >= 100 ? 0 : completed +1});
+    // this.setState({ completed: completed >= 100 ? 0 : completed +1});
+  }
+
+  handleValueChange = (e) => {
+    let nextState = {};
+    nextState[e.target.name] = e.target.value;
+    this.setState(nextState);
   }
 
   render() {
+    const filteredComponents = (data) => {
+      data = data.filter((c) => {
+        // 모든 문자열은 기본적으로 빈 문자열을 포함하고 있다.
+        return c.name.indexOf(this.state.searchKeyword) > -1;
+      });
+
+      return data.map((c) => {
+       return <Customer stateRefresh={this.stateRefresh} key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} />
+      })
+    };
+
     const { classes } = this.props;
     const cellList = ["번호","프로필 이미지","이름","생년월일","성별","직업","설정"];
     return (
@@ -167,6 +188,9 @@ class App extends React.Component {
                   root: classes.inputRoot,
                   input: classes.inputInput,
                 }}
+                name="searchKeyword"
+                value={this.state.searchKeyword}
+                onChange={this.handleValueChange}
                 inputProps={{ 'aria-label': 'search' }}
               />
             </div>
@@ -184,22 +208,10 @@ class App extends React.Component {
             </TableHead>
             <TableBody>
             {
-                this.state.customers ?  this.state.customers.map(c =>{
-                return (
-                  <Customer stateRefresh={this.stateRefresh}
-                    key={c.id}
-                    id={c.id}
-                    image={c.image}
-                    name={c.name}
-                    birthday={c.birthday}
-                    gender={c.gender}
-                    job={c.job}
-                  />
-                );
-              }) :
+              this.state.customers ? filteredComponents(this.state.customers):
               <TableRow>
                 <TableCell colspan="6" align="center">
-                  <CircularProgress className={classes.progress} variant="determinate" value={this.state.completed}/>
+
                 </TableCell>
               </TableRow>
             }

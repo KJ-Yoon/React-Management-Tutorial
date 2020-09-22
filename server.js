@@ -28,9 +28,11 @@ const upload = multer({dest: './upload'});
 app.use('/image', express.static('./upload'));
 
 app.get('/api/customers', (req, res) => {
+  console.log('apt.get');
   connection.query(
     "SELECT * FROM CUSTOMER WHERE isDeleted = 0",
     (err, rows, fields) => {
+      console.log(rows);
       res.send(rows);
     }
   );
